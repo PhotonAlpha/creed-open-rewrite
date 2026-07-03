@@ -1,0 +1,11 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(curl -s \"https://search.maven.org/solrsearch/select?q=g:%22org.openrewrite%22+AND+a:rewrite-java-*&rows=10&wt=json\")",
+      "Bash(python3 -c \"import sys,json; [print\\(d['a'], d['latestVersion']\\) for d in json.load\\(sys.stdin\\)['response']['docs']]\")",
+      "Bash(mvn -e org.openrewrite.maven:rewrite-maven-plugin:6.12.0:run -Drewrite.recipeArtifactCoordinates=com.creed:creed-ai-rewrite:1.0.0 -Drewrite.activeRecipes=com.creed.rewrite.CommonsLang3StringUtilsToStrings)",
+      "Bash(java -version)",
+      "Bash(mvn -version)"
+    ]
+  }
+}
