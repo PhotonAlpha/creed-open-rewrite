@@ -26,7 +26,7 @@ Strings.CI.removeStart(name, "user_");
 
 ## 环境要求
 
-- JDK 17(运行 `mvn` 命令所用的 JDK;注意 rewrite-maven-plugin 目前在 JDK 24+ 上不可用)
+- JDK 21(运行 `mvn` 命令所用的 JDK;注意 rewrite-maven-plugin 目前在 JDK 24+ 上不可用)
 - Maven 3.x
 
 ## 使用方式
