@@ -136,3 +136,8 @@ mvn org.openrewrite.maven:rewrite-maven-plugin:6.12.0:dryRun \
 `removePattern`(→ `RegExUtils`)、`getLevenshteinDistance` / `getJaroWinklerDistance` /
 `getFuzzyDistance`(→ commons-text)、`chomp(String,String)`、`defaultString(String,String)`、
 `toString(byte[],String)`。
+
+## 其他迁移文档
+
+- [JUnit 4 + PowerMock 迁移到 JUnit 5 + Mockito(mockStatic)](docs/junit4-powermock-to-junit5-mockito.md)
+  —— 使用 OpenRewrite 官方 `rewrite-testing-frameworks`,含 dryRun 预览、分步执行等完整命令。
