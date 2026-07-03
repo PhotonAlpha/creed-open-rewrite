@@ -1,0 +1,37 @@
+---
+type: specs.openrewrite.org/v1beta/recipe
+name: com.creed.rewrite.CommonsLang3NumberUtilsMigration
+displayName: Migrate deprecated `NumberUtils` methods
+description: >-
+  Replaces deprecated `org.apache.commons.lang3.math.NumberUtils` methods with their
+  recommended equivalents. `isNumber(String)` becomes `isCreatable(String)`, and
+  `compare(byte/short/int/long, ...)` becomes `Byte/Short/Integer/Long.compare(...)`.
+recipeList:
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: org.apache.commons.lang3.math.NumberUtils isNumber(java.lang.String)
+      newMethodName: isCreatable
+  - org.openrewrite.java.ChangeMethodTargetToStatic:
+      methodPattern: org.apache.commons.lang3.math.NumberUtils compare(byte, byte)
+      fullyQualifiedTargetTypeName: java.lang.Byte
+  - org.openrewrite.java.ChangeMethodTargetToStatic:
+      methodPattern: org.apache.commons.lang3.math.NumberUtils compare(short, short)
+      fullyQualifiedTargetTypeName: java.lang.Short
+  - org.openrewrite.java.ChangeMethodTargetToStatic:
+      methodPattern: org.apache.commons.lang3.math.NumberUtils compare(int, int)
+      fullyQualifiedTargetTypeName: java.lang.Integer
+  - org.openrewrite.java.ChangeMethodTargetToStatic:
+      methodPattern: org.apache.commons.lang3.math.NumberUtils compare(long, long)
+      fullyQualifiedTargetTypeName: java.lang.Long
+---
+type: specs.openrewrite.org/v1beta/recipe
+name: com.creed.rewrite.CommonsLang3Deprecations
+displayName: Migrate deprecated commons-lang3 APIs
+description: >-
+  Migrates deprecated commons-lang3 APIs. `StringUtils` methods deprecated since 3.18.0
+  are replaced with `Strings.CS` / `Strings.CI` equivalents, and deprecated
+  `NumberUtils` methods are replaced with their recommended replacements.
+  Finally removes all unused imports.
+recipeList:
+  - com.creed.rewrite.CommonsLang3StringUtilsToStrings
+  - com.creed.rewrite.CommonsLang3NumberUtilsMigration
+  - org.openrewrite.java.RemoveUnusedImports

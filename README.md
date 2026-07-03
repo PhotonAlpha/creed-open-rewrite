@@ -1,19 +1,35 @@
 # creed-ai-rewrite
 
-OpenRewrite recipe:将 commons-lang3 3.18+(含 3.20.0)中被 `@Deprecated` 标记的
-`StringUtils` 静态方法,自动迁移为 `Strings.CS` / `Strings.CI` 的等价调用,
-并自动维护 `org.apache.commons.lang3.Strings` 的 import。
+OpenRewrite recipes:自动迁移 commons-lang3 3.18+(含 3.20.0)中被 `@Deprecated`
+标记的 API。
+
+提供三个 recipe:
+
+| Recipe | 说明 |
+|---|---|
+| `com.creed.rewrite.CommonsLang3Deprecations` | 聚合入口(推荐),包含下面两个,并在最后移除所有未使用的 import |
+| `com.creed.rewrite.CommonsLang3StringUtilsToStrings` | `StringUtils` → `Strings.CS` / `Strings.CI` |
+| `com.creed.rewrite.CommonsLang3NumberUtilsMigration` | `NumberUtils.isNumber` → `isCreatable`;`NumberUtils.compare` → JDK `Byte/Short/Integer/Long.compare` |
+
+聚合 recipe 还包含 OpenRewrite 内置的 `org.openrewrite.java.RemoveUnusedImports`,
+迁移完成后会顺带清理文件中所有未使用的 import(不限于 commons-lang3 的)。
 
 ```java
 // 迁移前
 StringUtils.equals(a, b);
 StringUtils.equalsIgnoreCase(a, b);
 StringUtils.removeStartIgnoreCase(name, "user_");
+NumberUtils.isNumber(s);
+NumberUtils.compare(i1, i2);
+NumberUtils.compare(l1, l2);
 
 // 迁移后
 Strings.CS.equals(a, b);
 Strings.CI.equals(a, b);
 Strings.CI.removeStart(name, "user_");
+NumberUtils.isCreatable(s);
+Integer.compare(i1, i2);
+Long.compare(l1, l2);
 ```
 
 - 区分大小写的方法 → `Strings.CS.xxx(...)`
@@ -44,7 +60,7 @@ mvn install
 cd <你的项目>
 mvn org.openrewrite.maven:rewrite-maven-plugin:6.12.0:run \
   -Drewrite.recipeArtifactCoordinates=com.creed:creed-ai-rewrite:1.0.0 \
-  -Drewrite.activeRecipes=com.creed.rewrite.CommonsLang3StringUtilsToStrings
+  -Drewrite.activeRecipes=com.creed.rewrite.CommonsLang3Deprecations
 ```
 
 先预览不落盘,可用 `dryRun`(diff 输出到 `target/rewrite/rewrite.patch`):
@@ -52,8 +68,11 @@ mvn org.openrewrite.maven:rewrite-maven-plugin:6.12.0:run \
 ```bash
 mvn org.openrewrite.maven:rewrite-maven-plugin:6.12.0:dryRun \
   -Drewrite.recipeArtifactCoordinates=com.creed:creed-ai-rewrite:1.0.0 \
-  -Drewrite.activeRecipes=com.creed.rewrite.CommonsLang3StringUtilsToStrings
+  -Drewrite.activeRecipes=com.creed.rewrite.CommonsLang3Deprecations
 ```
+
+只想迁移某一类,把 `activeRecipes` 换成 `...CommonsLang3StringUtilsToStrings`
+或 `...CommonsLang3NumberUtilsMigration` 即可。
 
 ### 方式二:配置到目标项目 pom 中
 
@@ -64,7 +83,7 @@ mvn org.openrewrite.maven:rewrite-maven-plugin:6.12.0:dryRun \
     <version>6.12.0</version>
     <configuration>
         <activeRecipes>
-            <recipe>com.creed.rewrite.CommonsLang3StringUtilsToStrings</recipe>
+            <recipe>com.creed.rewrite.CommonsLang3Deprecations</recipe>
         </activeRecipes>
     </configuration>
     <dependencies>
@@ -79,7 +98,19 @@ mvn org.openrewrite.maven:rewrite-maven-plugin:6.12.0:dryRun \
 
 之后执行 `mvn rewrite:run`。
 
-## 覆盖的方法(34 个弃用方法,含重载共 39 个签名)
+## 覆盖的方法
+
+### NumberUtils(`org.apache.commons.lang3.math.NumberUtils`)
+
+| NumberUtils(已弃用) | 迁移为 |
+|---|---|
+| isNumber(String) | NumberUtils.isCreatable(String) |
+| compare(byte, byte) | Byte.compare |
+| compare(short, short) | Short.compare |
+| compare(int, int) | Integer.compare |
+| compare(long, long) | Long.compare |
+
+### StringUtils(34 个弃用方法,含重载共 39 个签名)
 
 | StringUtils(已弃用) | 迁移为 |
 |---|---|

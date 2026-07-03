@@ -10,14 +10,14 @@
     <packaging>jar</packaging>
 
     <name>creed-ai-rewrite</name>
-    <description>OpenRewrite recipes: migrate deprecated commons-lang3 StringUtils methods to Strings.CS / Strings.CI</description>
+    <description>OpenRewrite recipes: migrate deprecated commons-lang3 APIs (StringUtils to Strings.CS/CI, NumberUtils to isCreatable/JDK compare)</description>
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <maven.compiler.release>21</maven.compiler.release>
-        <rewrite-recipe-bom.version>3.10.1</rewrite-recipe-bom.version>
+        <rewrite-recipe-bom.version>3.33.0</rewrite-recipe-bom.version>
         <commons-lang3.version>3.20.0</commons-lang3.version>
-        <junit.version>5.13.2</junit.version>
+        <junit.version>5.14.4</junit.version>
     </properties>
 
     <dependencyManagement>
@@ -69,20 +69,6 @@
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-surefire-plugin</artifactId>
                 <version>3.5.4</version>
-                <configuration>
-                    <argLine>
-                        --add-exports jdk.compiler/com.sun.tools.javac.api=ALL-UNNAMED
-                        --add-exports jdk.compiler/com.sun.tools.javac.code=ALL-UNNAMED
-                        --add-exports jdk.compiler/com.sun.tools.javac.comp=ALL-UNNAMED
-                        --add-exports jdk.compiler/com.sun.tools.javac.file=ALL-UNNAMED
-                        --add-exports jdk.compiler/com.sun.tools.javac.jvm=ALL-UNNAMED
-                        --add-exports jdk.compiler/com.sun.tools.javac.main=ALL-UNNAMED
-                        --add-exports jdk.compiler/com.sun.tools.javac.model=ALL-UNNAMED
-                        --add-exports jdk.compiler/com.sun.tools.javac.processing=ALL-UNNAMED
-                        --add-exports jdk.compiler/com.sun.tools.javac.tree=ALL-UNNAMED
-                        --add-exports jdk.compiler/com.sun.tools.javac.util=ALL-UNNAMED
-                    </argLine>
-                </configuration>
             </plugin>
         </plugins>
     </build>
