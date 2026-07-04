@@ -61,6 +61,13 @@ cd <你的项目>
 mvn org.openrewrite.maven:rewrite-maven-plugin:6.12.0:run \
   -Drewrite.recipeArtifactCoordinates=com.creed:creed-ai-rewrite:1.0.0 \
   -Drewrite.activeRecipes=com.creed.rewrite.CommonsLang3Deprecations
+  
+  
+mvn org.openrewrite.maven:rewrite-maven-plugin:6.12.0:run \
+  -pl :module-a \
+  -am
+  -Drewrite.recipeArtifactCoordinates=com.creed:creed-ai-rewrite:1.0.0 \
+  -Drewrite.activeRecipes=com.creed.rewrite.CommonsLang3Deprecations
 ```
 
 先预览不落盘,可用 `dryRun`(diff 输出到 `target/rewrite/rewrite.patch`):

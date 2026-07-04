@@ -106,6 +106,61 @@ mvn org.openrewrite.maven:rewrite-maven-plugin:6.12.0:run \
 
 之后执行 `mvn rewrite:dryRun` 预览、`mvn rewrite:run` 落盘。
 
+## 五、排除 resources 目录(可选)
+
+resources 下的 yaml/xml/properties/json 也会被解析成 LST 参与 recipe。不想让它们被扫描/修改时,加 `-Drewrite.exclusions`(glob 相对项目根目录,zsh 下注意加引号防止 `**` 被展开):
+
+```bash
+mvn org.openrewrite.maven:rewrite-maven-plugin:6.12.0:run \
+  -Drewrite.recipeArtifactCoordinates=org.openrewrite.recipe:rewrite-testing-frameworks:3.11.0 \
+  -Drewrite.activeRecipes=org.openrewrite.java.testing.junit5.JUnit4to5Migration,org.openrewrite.java.testing.mockito.Mockito1to5Migration \
+  -Drewrite.exclusions='**/src/main/resources/**,**/src/test/resources/**'
+```
+
+对应的 pom 配置(加在上面第四节 `<configuration>` 内):
+
+```xml
+<exclusions>
+    <exclusion>**/src/main/resources/**</exclusion>
+    <exclusion>**/src/test/resources/**</exclusion>
+</exclusions>
+```
+
+排除后这部分文件不再解析,也能降低内存占用(大项目 OOM 时有帮助)。
+
+## 六、大项目 OOM:分模块遍历执行(可选)
+
+rewrite-maven-plugin 在根目录执行时会把 reactor 内**所有模块**的 LST 累积在同一个 JVM 里,模块多时容易 OOM。处理顺序建议:
+
+1. 先加大堆 + 排除 resources:`MAVEN_OPTS="-Xmx12g"` + 第五节的 exclusions,一次跑完最快,跨模块 recipe 视野完整;
+2. 还不行再用 `-pl` 手动分批:`mvn -pl module-a,module-b org.openrewrite.maven:rewrite-maven-plugin:6.12.0:run ...`(不要加 `-am`);
+3. 模块非常多(几十上百个)时,用 [rewrite-per-module.sh](rewrite-per-module.sh) 逐模块遍历执行。
+
+使用遍历脚本:
+
+```bash
+# 前置:先完整 install 一次,保证兄弟模块依赖能从本地仓库解析
+mvn install -DskipTests
+
+# 在目标项目根目录执行(默认跑本项目的 com.creed.rewrite.CommonsLang3Deprecations)
+bash <本项目路径>/docs/rewrite-per-module.sh
+
+# 可通过环境变量覆盖:先 dryRun 预览、调整堆大小、换用其他 recipe
+GOAL=dryRun HEAP=6g bash <本项目路径>/docs/rewrite-per-module.sh
+
+COORDS=org.openrewrite.recipe:rewrite-testing-frameworks:3.11.0 \
+  RECIPES=org.openrewrite.java.testing.junit5.JUnit4to5Migration \
+  bash <本项目路径>/docs/rewrite-per-module.sh
+```
+
+脚本要点(手写循环时同样适用):
+
+- 模块列表来自 `mvn -q exec:exec -Dexec.executable=pwd`,由 Maven 自己报告 reactor 模块目录——不要用 `find` 找 pom.xml,会误扫 `target/` 下的和未被 `<modules>` 引用的 pom;
+- 每个模块用 `-N`(非递归)执行,保证聚合模块和叶子模块各处理恰好一次;
+- 单个模块失败不中断,记录到 `rewrite-failed.txt`,跑完后单独重试失败模块即可,不用从头再来。
+
+代价:每个模块一次独立的 mvn 冷启动,总耗时明显长于一次性执行;且每次运行只能看到当前模块的源码,依赖"同一次运行看到全部源码"的跨模块 recipe 会打折扣(JUnit/Mockito 迁移这类模块内独立生效的 recipe 不受影响)。
+
 ## 迁移效果示例
 
 ```java
